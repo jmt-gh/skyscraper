@@ -353,7 +353,7 @@ QString Platform::getFormats(QString platform, QString extensions, QString addEx
   if(platform == "3do") {
     formats.append("*.iso *.cue *.chd");
   } else if(platform == "3ds") {
-    formats.append("*.3ds");
+    formats.append("*.3ds *.cia");
   } else if(platform == "amiga") {
     formats.append("*.uae *.adf *.dms *.adz *.rp9 *.lha *.cue *.img *.iso *.hdf");
   } else if(platform == "amigacd32") {
