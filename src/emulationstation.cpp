@@ -196,6 +196,11 @@ void EmulationStation::assembleList(QString &finalOutput, QList<GameEntry> &game
     } else {
       finalOutput.append("    <video>" + (config->relativePaths?StrTools::xmlEscape(entry.videoFile).replace(config->inputFolder, "."):StrTools::xmlEscape(entry.videoFile)) + "</video>\n");
     }
+    if(entry.manualFormat.isEmpty() || !config->manuals) {
+      finalOutput.append("    <manual />\n");
+    } else {
+      finalOutput.append("    <manual>" + (config->relativePaths?StrTools::xmlEscape(entry.manualFile).replace(config->inputFolder, "."):StrTools::xmlEscape(entry.manualFile)) + "</manual>\n");
+    }
     if(entry.rating.isEmpty()) {
       finalOutput.append("    <rating />\n");
     } else {
@@ -302,4 +307,8 @@ QString EmulationStation::getMarqueesFolder()
 QString EmulationStation::getVideosFolder()
 {
   return config->mediaFolder + "/videos";
+}
+QString EmulationStation::getManualsFolder()
+{
+  return config->mediaFolder + "/manuals";
 }

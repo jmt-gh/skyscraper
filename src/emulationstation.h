@@ -47,6 +47,7 @@ public:
   QString getWheelsFolder() override;
   QString getMarqueesFolder() override;
   QString getVideosFolder() override;
+  QString getManualsFolder() override;
 
 };
 

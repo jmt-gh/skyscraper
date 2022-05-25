@@ -62,6 +62,9 @@ bool Cache::createFolders(const QString &scraper)
     if(!cacheDir.mkpath(cacheDir.absolutePath() + "/videos/" + scraper)) {
       return false;
     }
+    if(!cacheDir.mkpath(cacheDir.absolutePath() + "/manuals/" + scraper)) {
+      return false;
+    }
   }
 
   // Copy priorities.xml example file to cache folder if it doesn't already exist
@@ -150,7 +153,7 @@ bool Cache::read()
       resource.value = xml.readElementText();
       if(resource.type == "cover" || resource.type == "screenshot" ||
 	 resource.type == "wheel" || resource.type == "marquee" ||
-	 resource.type == "video") {
+	 resource.type == "video" || resource.type == "manual") {
 	if(!QFileInfo::exists(cacheDir.absolutePath() + "/" + resource.value)) {
 	  printf("Source file '%s' missing, skipping entry...\n",
 		 resource.value.toStdString().c_str());
@@ -231,6 +234,12 @@ void Cache::printPriorities(QString cacheId)
     printf("\033[1;31mNO\033[0m' ()\n");
   } else {
     printf("\033[1;32mYES\033[0m' (%s)\n", game.videoSrc.toStdString().c_str());
+  }
+  printf("Manual:          '");
+  if(game.manualSrc.isEmpty()) {
+    printf("\033[1;31mNO\033[0m' ()\n");
+  } else {
+    printf("\033[1;32mYES\033[0m' (%s)\n", game.manualSrc.toStdString().c_str());
   }
   printf("Description: (%s)\n'\033[1;32m%s\033[0m'",
 	 (game.descriptionSrc.isEmpty()?QString("\033[1;31mmissing\033[0m"):game.descriptionSrc).toStdString().c_str(),
@@ -473,7 +482,8 @@ void Cache::editResources(QSharedPointer<Queue> queue,
 	     resources.at(a).type != "cover" &&
 	     resources.at(a).type != "wheel" &&
 	     resources.at(a).type != "marquee" &&
-	     resources.at(a).type != "video") {
+	     resources.at(a).type != "video" &&
+         resources.at(a).type != "manual") {
 	    printf("\033[1;33m%d\033[0m) \033[1;33m%s\033[0m (%s): '\033[1;32m%s\033[0m'\n", b, resources.at(a).type.toStdString().c_str(),
 		   resources.at(a).source.toStdString().c_str(),
 		   resources.at(a).value.toStdString().c_str());
@@ -636,7 +646,7 @@ bool Cache::purgeResources(QString purgeStr)
     if(remove) {
       if(res.type == "cover" || res.type == "screenshot" ||
 	 res.type == "wheel" || res.type == "marquee" ||
-	 res.type == "video") {
+	 res.type == "video" || res.type == "manual") {
 	if(!QFile::remove(cacheDir.absolutePath() + "/" + res.value)) {
 	  printf("Couldn't purge media file '%s', skipping...\n", res.value.toStdString().c_str());
 	  continue;
@@ -680,7 +690,7 @@ bool Cache::purgeAll(const bool unattend)
     Resource res = it.next();
     if(res.type == "cover" || res.type == "screenshot" ||
        res.type == "wheel" || res.type == "marquee" ||
-       res.type == "video") {
+       res.type == "video" || res.type== "manual") {
       if(!QFile::remove(cacheDir.absolutePath() + "/" + res.value)) {
 	printf("Couldn't purge media file '%s', skipping...\n", res.value.toStdString().c_str());
 	continue;
@@ -775,6 +785,7 @@ void Cache::assembleReport(const Settings &config, const QString filter)
       resTypeList.append("wheel");
       resTypeList.append("marquee");
       resTypeList.append("video");
+      resTypeList.append("manual");
     } else if(missingOption == "textual") {
       resTypeList.append("title");
       resTypeList.append("platform");
@@ -797,6 +808,7 @@ void Cache::assembleReport(const Settings &config, const QString filter)
       resTypeList.append("wheel");
       resTypeList.append("marquee");
       resTypeList.append("video");
+      resTypeList.append("manual");
     } else {
       resTypeList.append(missingOption); // If a single type is given
     }
@@ -816,7 +828,8 @@ void Cache::assembleReport(const Settings &config, const QString filter)
        resType != "screenshot" &&
        resType != "wheel" &&
        resType != "marquee" &&
-       resType != "video") {
+       resType != "video" &&
+       resType != "manual") {
       if(resType != "help") {
 	printf("\033[1;31mUnknown resource type '%s'!\033[0m\n", resType.toStdString().c_str());
       }
@@ -824,8 +837,8 @@ void Cache::assembleReport(const Settings &config, const QString filter)
       printf("  \033[1;32mhelp\033[0m: Shows this help message\n");
       printf("  \033[1;32mall\033[0m: Creates reports for all resource types\n");
       printf("  \033[1;32mtextual\033[0m: Creates reports for all textual resource types\n");
-      printf("  \033[1;32martwork\033[0m: Creates reports for all artwork related resource types excluding 'video'\n");
-      printf("  \033[1;32mmedia\033[0m: Creates reports for all media resource types including 'video'\n");
+      printf("  \033[1;32martwork\033[0m: Creates reports for all artwork related resource types excluding 'video' and 'manual'\n");
+      printf("  \033[1;32mmedia\033[0m: Creates reports for all media resource types including 'video' and 'manual'\n");
       printf("  \033[1;32mtype1,type2,type3,...\033[0m: Creates reports for selected types. Example: 'developer,screenshot,rating'\n");
       printf("\nAvailable resource types:\n");
       printf("  \033[1;32mtitle\033[0m\n");
@@ -843,6 +856,7 @@ void Cache::assembleReport(const Settings &config, const QString filter)
       printf("  \033[1;32mwheel\033[0m\n");
       printf("  \033[1;32mmarquee\033[0m\n");
       printf("  \033[1;32mvideo\033[0m\n");
+      printf("  \033[1;32mmanual\033[0m\n");
       printf("\n");
       return;
     }
@@ -980,7 +994,7 @@ bool Cache::vacuumResources(const QString inputFolder, const QString filter,
       if(remove) {
 	if(res.type == "cover" || res.type == "screenshot" ||
 	   res.type == "wheel" || res.type == "marquee" ||
-	   res.type == "video") {
+	   res.type == "video" || res.type == "manual") {
 	  if(!QFile::remove(cacheDir.absolutePath() + "/" + res.value)) {
 	    printf("Couldn't purge media file '%s', skipping...\n", res.value.toStdString().c_str());
 	    continue;
@@ -1024,6 +1038,7 @@ void Cache::showStats(int verbosity)
     int wheels = 0;
     int marquees = 0;
     int videos = 0;
+    int manuals = 0;
     for(QMap<QString, ResCounts>::iterator it = resCountsMap.begin();
 	it != resCountsMap.end(); ++it) {
       titles += it.value().titles;
@@ -1041,6 +1056,7 @@ void Cache::showStats(int verbosity)
       wheels += it.value().wheels;
       marquees += it.value().marquees;
       videos += it.value().videos;
+      manuals += it.value().manuals;
     }
     printf("  Titles       : %d\n", titles);
     printf("  Platforms    : %d\n", platforms);
@@ -1057,6 +1073,7 @@ void Cache::showStats(int verbosity)
     printf("  Wheels       : %d\n", wheels);
     printf("  Marquees     : %d\n", marquees);
     printf("  Videos       : %d\n", videos);
+    printf("  Manuals      : %d\n", manuals);
   } else if(verbosity > 1) {
     for(QMap<QString, ResCounts>::iterator it = resCountsMap.begin();
 	it != resCountsMap.end(); ++it) {
@@ -1075,6 +1092,7 @@ void Cache::showStats(int verbosity)
       printf("  Wheels       : %d\n", it.value().wheels);
       printf("  Marquees     : %d\n", it.value().marquees);
       printf("  Videos       : %d\n", it.value().videos);
+      printf("  Manuals      : %d\n", it.value().manuals);
     }
   }
   printf("\n");
@@ -1112,6 +1130,8 @@ void Cache::addToResCounts(const QString source, const QString type)
     resCountsMap[source].marquees++;
   } else if(type == "video") {
     resCountsMap[source].videos++;
+  } else if(type == "manual") {
+    resCountsMap[source].manuals++;
   }
 }
 
@@ -1237,6 +1257,7 @@ void Cache::validate()
   QDir wheelsDir(cacheDir.absolutePath() + "/wheels", "*.*", QDir::Name, QDir::Files);
   QDir marqueesDir(cacheDir.absolutePath() + "/marquees", "*.*", QDir::Name, QDir::Files);
   QDir videosDir(cacheDir.absolutePath() + "/videos", "*.*", QDir::Name, QDir::Files);
+  QDir manualsDir(cacheDir.absolutePath() + "/manuals", "*.*", QDir::Name, QDir::Files);
 
   QDirIterator coversDirIt(coversDir.absolutePath(),
 			   QDir::Files | QDir::NoDotAndDotDot,
@@ -1258,6 +1279,10 @@ void Cache::validate()
 			   QDir::Files | QDir::NoDotAndDotDot,
 			   QDirIterator::Subdirectories);
 
+  QDirIterator manualsDirIt(manualsDir.absolutePath(),
+			   QDir::Files | QDir::NoDotAndDotDot,
+			   QDirIterator::Subdirectories);
+
   int filesDeleted = 0;
   int filesNoDelete = 0;
 
@@ -1266,6 +1291,7 @@ void Cache::validate()
   verifyFiles(wheelsDirIt, filesDeleted, filesNoDelete, "wheel");
   verifyFiles(marqueesDirIt, filesDeleted, filesNoDelete, "marquee");
   verifyFiles(videosDirIt, filesDeleted, filesNoDelete, "video");
+  verifyFiles(manualsDirIt, filesDeleted, filesNoDelete, "manual");
 
   if(filesDeleted == 0 && filesNoDelete == 0) {
     printf("No inconsistencies found in the database. :)\n\n");
@@ -1326,7 +1352,7 @@ void Cache::merge(Cache &mergeCache, bool overwrite, const QString &mergeCacheFo
 	if(overwrite) {
 	  if(res.type == "cover" || res.type == "screenshot" ||
 	     res.type == "wheel" || res.type == "marquee" ||
-	     res.type == "video") {
+	     res.type == "video" || res.type == "manual") {
 	    if(!QFile::remove(cacheDir.absolutePath() + "/" + res.value)) {
 	      printf("Couldn't remove media file '%s' for updating, skipping...\n", res.value.toStdString().c_str());
 	      continue;
@@ -1343,7 +1369,7 @@ void Cache::merge(Cache &mergeCache, bool overwrite, const QString &mergeCacheFo
     if(!resExists) {
       if(mergeResource.type == "cover" || mergeResource.type == "screenshot" ||
 	 mergeResource.type == "wheel" || mergeResource.type == "marquee" ||
-	 mergeResource.type == "video") {
+	 mergeResource.type == "video" || mergeResource.type == "manual") {
 	cacheDir.mkpath(QFileInfo(cacheDir.absolutePath() + "/" + mergeResource.value).absolutePath());
 	if(!QFile::copy(mergeCacheDir.absolutePath() + "/" + mergeResource.value,
 			cacheDir.absolutePath() + "/" + mergeResource.value)) {
@@ -1436,6 +1462,11 @@ void Cache::addResources(GameEntry &entry, const Settings &config, QString &outp
     if(entry.videoData != "" && entry.videoFormat != "") {
       resource.type = "video";
       resource.value = "videos/" + entry.source + "/" + entry.cacheId + "." + entry.videoFormat;
+      addResource(resource, entry, cacheAbsolutePath, config, output);
+    }
+    if(entry.manualData != "" && entry.manualFormat != "") {
+      resource.type = "manual";
+      resource.value = "manuals/" + entry.source + "/" + entry.cacheId + "." + entry.manualFormat;
       addResource(resource, entry, cacheAbsolutePath, config, output);
     }
     if(!entry.coverData.isNull() && config.cacheCovers) {
@@ -1548,6 +1579,15 @@ void Cache::addResource(Resource &resource,
 	// in the terminal output from scraperworker.cpp.
 	imageData->clear();
       }
+    } else if (resource.type == "manual") {
+        QFile f(cacheFile);
+        if(f.open(QIODevice::WriteOnly)) {
+          f.write(entry.manualData);
+          f.close();
+        } else {
+          output.append("Error writing file: '" + f.fileName() + "' to cache. Please check permissions.");
+          okToAppend = false;
+        }
     } else if(resource.type == "video") {
       if(entry.videoData.size() <= config.videoSizeLimit) {
 	QFile f(cacheFile);
@@ -1890,6 +1930,22 @@ void Cache::fillBlanks(GameEntry &entry, const QString scraper)
 	entry.videoFormat = info.suffix();
 	entry.videoFile = info.absoluteFilePath();
 	entry.videoSrc = source;
+      }
+    }
+  }
+  {
+    QString type = "manual";
+    QString result = "";
+    QString source = "";
+    if(fillType(type, matchingResources, result, source)) {
+      QFileInfo info(cacheDir.absolutePath() + "/" + result);
+      QFile f(info.absoluteFilePath());
+      if(f.open(QIODevice::ReadOnly)) {
+	entry.manualData = f.readAll();
+	f.close();
+	entry.manualFormat = info.suffix();
+	entry.manualFile = info.absoluteFilePath();
+	entry.manualSrc = source;
       }
     }
   }

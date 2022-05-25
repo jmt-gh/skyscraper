@@ -40,6 +40,7 @@ constexpr int WHEEL = 10;
 constexpr int MARQUEE = 11;
 constexpr int AGES = 12;
 constexpr int TITLE = 13;
+constexpr int MANUAL = 14;
 
 #include <QImage>
 
@@ -47,7 +48,7 @@ class GameEntry
 {
 public:
   GameEntry();
-  void calculateCompleteness(bool videoEnabled = false);
+  void calculateCompleteness(bool videoEnabled = false, bool manualEnabled = false);
   int getCompleteness() const;
   void resetMedia();
 
@@ -89,6 +90,9 @@ public:
   QByteArray videoData = "";
   QString videoFile = "";
   QString videoSrc = "";
+  QByteArray manualData = "";
+  QString manualFile = "";
+  QString manualSrc = "";
 
   int searchMatch = 0;
   QString cacheId = "";
@@ -97,6 +101,7 @@ public:
   QString sqrNotes = "";
   QString parNotes = "";
   QString videoFormat = "";
+  QString manualFormat = "";
   QString baseName = "";
   QString absoluteFilePath = "";
   bool found = true;

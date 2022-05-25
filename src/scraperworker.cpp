@@ -26,6 +26,7 @@
 #include <iostream>
 #include <QTimer>
 #include <QRegularExpression>
+#include <QDebug>
 
 #include "scraperworker.h"
 #include "strtools.h"
@@ -239,6 +240,36 @@ void ScraperWorker::run()
     if(!config.pretend && config.scraper == "cache") {
       // Process all artwork
       compositor.saveAll(game, info.completeBaseName());
+      printf("CONFIG MANUAL:\n\n");
+      printf("%s", config.manuals?"it is configed":"it is NOT configsed");
+
+      if(config.manuals && game.manualFormat != "" && !game.manualFile.isEmpty() && QFile::exists(game.manualFile)) {
+	    QString manualDst = config.manualsFolder + "/" + info.completeBaseName() + "." + game.manualFormat;
+        printf("manualDst\n\n");
+        qDebug() << manualDst;
+        printf("\n\ninfo.completeBaseName()");
+        qDebug() << info.completeBaseName();
+	    if(config.skipExistingManuals && QFile::exists(manualDst)) {
+        } else {
+          if(QFile::exists(manualDst)) {
+            QFile::remove(manualDst);
+          }
+          if(config.symlink) {
+            if(!QFile::link(game.manualFile, manualDst)) {
+              game.manualFormat = "";
+            }
+          } else {
+            QFile manualFile(manualDst);
+            if(manualFile.open(QIODevice::WriteOnly)) {
+              manualFile.write(game.manualData);
+              manualFile.close();
+            } else {
+              game.manualFormat = "";
+            }
+          }
+        }
+      }
+
       // Copy or symlink videos as requested
       if(config.videos &&
 	 game.videoFormat != "" &&
@@ -295,6 +326,7 @@ void ScraperWorker::run()
 
     // Don't unescape title since we already did that in getBestEntry()
     game.videoFile = StrTools::xmlUnescape(config.videosFolder + "/" + info.completeBaseName() + "." + game.videoFormat);
+    game.manualFile = StrTools::xmlUnescape(config.manualsFolder + "/" + info.completeBaseName() + "." + game.manualFormat);
     game.description = StrTools::xmlUnescape(game.description);
     game.releaseDate = StrTools::xmlUnescape(game.releaseDate);
     // Make sure we have the correct 'yyyymmdd' format of 'releaseDate'
@@ -351,6 +383,9 @@ void ScraperWorker::run()
     output.append("Marquee:        " + QString((game.marqueeData.isNull()?"\033[1;31mNO":"\033[1;32mYES")) + "\033[0m" + QString((config.cacheMarquees || config.scraper == "cache"?"":" (uncached)")) + " (" + game.marqueeSrc + ")\n");
     if(config.videos) {
       output.append("Video:          " + QString((game.videoFormat.isEmpty()?"\033[1;31mNO":"\033[1;32mYES")) + "\033[0m" + QString((game.videoData.size() <= config.videoSizeLimit?"":" (size exceeded, uncached)")) + " (" + game.videoSrc + ")\n");
+    }
+    if(config.manuals) {
+      output.append("Manual:          " + QString((game.manualFormat.isEmpty()?"\033[1;31mNO":"\033[1;32mYES")) + "\033[0m" + " (" + game.manualSrc + ")\n");
     }
     output.append("\nDescription: (" + game.descriptionSrc + ")\n'\033[1;32m" + game.description.left(config.maxLength) + "\033[0m'\n");
     if(!cacheOutput.isEmpty()) {

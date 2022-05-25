@@ -71,6 +71,7 @@ protected:
   virtual void getWheel(GameEntry &game);
   virtual void getMarquee(GameEntry &game);
   virtual void getVideo(GameEntry &game);
+  virtual void getManual(GameEntry &game);
 
   virtual void nomNom(const QString nom, bool including = true);
 
@@ -122,6 +123,8 @@ protected:
   QString marqueePost;
   QList<QString> videoPre;
   QString videoPost;
+  QList<QString> manualPre;
+  QString manualPost;
 
   // This is used when file names have a region in them. The original regionPrios is in Settings
   QList<QString> regionPrios;

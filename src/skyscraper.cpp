@@ -92,6 +92,9 @@ void Skyscraper::run()
   if(config.videos) {
     printf("Videos folder:      '\033[1;32m%s\033[0m'\n", config.videosFolder.toStdString().c_str());
   }
+  if(config.manuals) {
+    printf("Manuals folder:      '\033[1;32m%s\033[0m'\n", config.manualsFolder.toStdString().c_str());
+  }
   printf("Cache folder:       '\033[1;32m%s\033[0m'\n", config.cacheFolder.toStdString().c_str());
   if(config.scraper == "import") {
     printf("Import folder:      '\033[1;32m%s\033[0m'\n", config.importFolder.toStdString().c_str());
@@ -225,6 +228,13 @@ void Skyscraper::run()
     if(config.scraper == "cache" && !config.pretend)
       checkForFolder(videosDir);
     config.videosFolder = videosDir.absolutePath();
+  }
+
+  if(config.manuals) {
+    QDir manualsDir(config.manualsFolder);
+    if(config.scraper == "cache" && !config.pretend)
+      checkForFolder(manualsDir);
+    config.manualsFolder = manualsDir.absolutePath();
   }
 
   QDir importDir(config.importFolder);
@@ -747,6 +757,9 @@ void Skyscraper::loadConfig(const QCommandLineParser &parser)
   if(settings.contains("videos")) {
     config.videos = settings.value("videos").toBool();
   }
+  if(settings.contains("manuals")) {
+    config.manuals= settings.value("manuals").toBool();
+  }
   if(settings.contains("videoSizeLimit")) {
     config.videoSizeLimit = settings.value("videoSizeLimit").toInt() * 1024 * 1024;
   }
@@ -973,6 +986,9 @@ void Skyscraper::loadConfig(const QCommandLineParser &parser)
   if(settings.contains("videos")) {
     config.videos = settings.value("videos").toBool();
   }
+  if(settings.contains("manuals")) {
+    config.manuals= settings.value("manuals").toBool();
+  }
   if(settings.contains("videoSizeLimit")) {
     config.videoSizeLimit = settings.value("videoSizeLimit").toInt() * 1000 * 1000;
   }
@@ -1103,6 +1119,9 @@ void Skyscraper::loadConfig(const QCommandLineParser &parser)
   if(settings.contains("videos")) {
     config.videos = settings.value("videos").toBool();
   }
+  if(settings.contains("manuals")) {
+    config.manuals= settings.value("manuals").toBool();
+  }
   if(settings.contains("symlink")) {
     config.symlink = settings.value("symlink").toBool();
   }
@@ -1183,6 +1202,9 @@ void Skyscraper::loadConfig(const QCommandLineParser &parser)
   }
   if(settings.contains("videos")) {
     config.videos = settings.value("videos").toBool();
+  }
+  if(settings.contains("manuals")) {
+    config.manuals = settings.value("manuals").toBool();
   }
   if(settings.contains("videoSizeLimit")) {
     config.videoSizeLimit = settings.value("videoSizeLimit").toInt() * 1000 * 1000;
@@ -1268,6 +1290,7 @@ void Skyscraper::loadConfig(const QCommandLineParser &parser)
       printf("  \033[1;33munattendskip\033[0m: Skip initial questions when scraping. It will then always overwrite existing gamelist and always skip existing entries.\n");
       printf("  \033[1;33munpack\033[0m: Unpacks and checksums the file inside 7z or zip files instead of the compressed file itself. Be aware that this option requires '7z' to be installed on the system to work. Only relevant for 'screenscraper' scraping module.\n");
       printf("  \033[1;33mvideos\033[0m: Enables scraping and caching of videos for the scraping modules that support them. Beware, this takes up a lot of disk space!.\n");
+      printf("  \033[1;33mmanualss\033[0m: Enables scraping and caching of manuals for the scraping modules that support them.\n");
       printf("\n");
       exit(0);
     } else {
@@ -1325,6 +1348,8 @@ void Skyscraper::loadConfig(const QCommandLineParser &parser)
 	  config.unpack = true;
 	} else if(flag == "videos") {
 	  config.videos = true;
+	} else if(flag == "manuals") {
+	  config.manuals= true;
 	} else {
 	  printf("Unknown flag '%s', please check '--flags help' for a list of valid flags. Exiting...\n", flag.toStdString().c_str());
 	  exit(1);
@@ -1334,6 +1359,9 @@ void Skyscraper::loadConfig(const QCommandLineParser &parser)
   }
   if(parser.isSet("videos")) {
     config.videos = true;
+  }
+  if(parser.isSet("manuals")) {
+    config.manuals= true;
   }
   if(parser.isSet("symlink")) {
     config.symlink = true;
@@ -1486,6 +1514,7 @@ void Skyscraper::loadConfig(const QCommandLineParser &parser)
   config.wheelsFolder = frontend->getWheelsFolder();
   config.marqueesFolder = frontend->getMarqueesFolder();
   config.videosFolder = frontend->getVideosFolder();
+  config.manualsFolder = frontend->getManualsFolder();
 
   // Choose default scraper for chosen platform if none has been set yet
   if(config.scraper.isEmpty()) {
@@ -1590,6 +1619,7 @@ void Skyscraper::loadConfig(const QCommandLineParser &parser)
     // Always force the cache to be refreshed when using import scraper
     config.refresh = true;
     config.videos = true;
+    config.manuals = true;
     // minMatch set to 0 further up
   }
 

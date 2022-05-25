@@ -29,12 +29,15 @@ GameEntry::GameEntry()
 {
 }
 
-void GameEntry::calculateCompleteness(bool videoEnabled)
+void GameEntry::calculateCompleteness(bool videoEnabled, bool manualEnabled)
 {
   completeness = 100.0;
   int noOfTypes = 13;
   if(videoEnabled) {
     noOfTypes += 1;
+  }
+  if(manualEnabled) {
+    noOfTypes+=1;
   }
   double valuePerType = completeness / (double)noOfTypes;
   if(title.isEmpty()) {
@@ -82,6 +85,9 @@ void GameEntry::calculateCompleteness(bool videoEnabled)
   if(videoEnabled && videoFormat.isEmpty()) {
     completeness -= valuePerType;
   }
+  if(manualEnabled && manualFormat.isEmpty()) {
+    completeness -= valuePerType;
+  }
 }
 
 int GameEntry::getCompleteness() const
@@ -96,4 +102,5 @@ void GameEntry::resetMedia()
   wheelData = QByteArray();
   marqueeData = QByteArray();
   videoData = "";
+  manualData = "";
 }

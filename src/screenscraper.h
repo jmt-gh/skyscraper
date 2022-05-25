@@ -63,6 +63,7 @@ private:
   void getWheel(GameEntry &game) override;
   void getMarquee(GameEntry &game) override;
   void getVideo(GameEntry &game) override;
+  void getManual(GameEntry &game);
 
   QString getJsonText(QJsonArray array, int attr, QList<QString> types = QList<QString>());
 

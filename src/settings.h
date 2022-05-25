@@ -50,6 +50,7 @@ struct Settings {
   QString wheelsFolder = "";
   QString marqueesFolder = "";
   QString videosFolder = "";
+  QString manualsFolder = "";
   QString importFolder = "import";
   QString nameTemplate = "";
   int doneThreads = 0;
@@ -102,10 +103,12 @@ struct Settings {
   bool videos = false;
   bool videoPreferNormalized = true;
   int videoSizeLimit = 100*1024*1024;
+  bool manuals = false;
   QString videoConvertCommand = "";
   QString videoConvertExtension = "";
   bool symlink = false;
   bool skipExistingVideos = false;
+  bool skipExistingManuals = false;
   bool cacheCovers = true;
   bool skipExistingCovers = false;
   bool cacheScreenshots = true;

@@ -56,6 +56,7 @@ public:
   virtual QString getWheelsFolder(){return QString();};
   virtual QString getMarqueesFolder(){return QString();};
   virtual QString getVideosFolder(){return QString();};
+  virtual QString getManualsFolder(){return QString();};
   virtual void sortEntries(QList<GameEntry> &gameEntries);
 
 protected:

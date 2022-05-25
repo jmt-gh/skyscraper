@@ -43,6 +43,7 @@ public:
   void getWheel(GameEntry &game) override;
   void getMarquee(GameEntry &game) override;
   void getVideo(GameEntry &game) override;
+  void getManual(GameEntry &game) override;
 
 private:
   bool checkType(QString baseName, QList<QFileInfo> &infos, QString &inputFile);
@@ -66,12 +67,14 @@ private:
   QList<QFileInfo> wheels;
   QList<QFileInfo> marquees;
   QList<QFileInfo> videos;
+  QList<QFileInfo> manuals;
   QString textualFile = "";
   QString coverFile = "";
   QString screenshotFile = "";
   QString wheelFile = "";
   QString marqueeFile = "";
   QString videoFile = "";
+  QString manualFile= "";
 };
 
 #endif // IMPORTSCRAPER_H

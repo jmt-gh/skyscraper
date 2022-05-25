@@ -56,6 +56,8 @@ ImportScraper::ImportScraper(Settings *config,
 		  QDir::Name, QDir::Files | QDir::NoDotAndDotDot).entryInfoList();
   videos = QDir(config->importFolder + "/videos", "*.*",
 		QDir::Name, QDir::Files | QDir::NoDotAndDotDot).entryInfoList();
+  manuals = QDir(config->importFolder + "/manuals", "*.*",
+		QDir::Name, QDir::Files | QDir::NoDotAndDotDot).entryInfoList();
   textual = QDir(config->importFolder + "/textual", "*.*",
 		 QDir::Name, QDir::Files | QDir::NoDotAndDotDot).entryInfoList();
   loadDefinitions();
@@ -210,6 +212,19 @@ void ImportScraper::getVideo(GameEntry &game)
       QFileInfo i(videoFile);
       game.videoData = f.readAll();
       game.videoFormat = i.suffix();
+      f.close();
+    }
+  }
+}
+
+void ImportScraper::getManual(GameEntry &game)
+{
+  if(!manualFile.isEmpty()) {
+    QFile f(manualFile);
+    if(f.open(QIODevice::ReadOnly)) {
+      QFileInfo i(manualFile);
+      game.manualData = f.readAll();
+      game.manualFormat = i.suffix();
       f.close();
     }
   }

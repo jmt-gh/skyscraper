@@ -26,6 +26,7 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QJsonDocument>
+#include <QDebug>
 
 #include "screenscraper.h"
 #include "strtools.h"
@@ -58,6 +59,7 @@ ScreenScraper::ScreenScraper(Settings *config,
   fetchOrder.append(WHEEL);
   fetchOrder.append(MARQUEE);
   fetchOrder.append(VIDEO);
+  fetchOrder.append(MANUAL);
 }
 
 void ScreenScraper::getSearchResults(QList<GameEntry> &gameEntries,
@@ -227,6 +229,11 @@ void ScreenScraper::getGameData(GameEntry &game)
     case MARQUEE:
       if(config->cacheMarquees) {
 	getMarquee(game);
+      }
+      break;
+    case MANUAL:
+      if(config->manuals) {
+    getManual(game);
       }
       break;
     case VIDEO:
@@ -411,6 +418,34 @@ void ScreenScraper::getMarquee(GameEntry &game)
       } else {
 	moveOn = false;
       }
+      if(moveOn)
+	break;
+    }
+  }
+}
+
+void ScreenScraper::getManual(GameEntry &game)
+{
+  QStringList types;
+  types.append("manuel");
+
+  QString url = getJsonText(jsonObj["medias"].toArray(), REGION, types);
+
+  if(!url.isEmpty()) {
+    bool moveOn = true;
+    for(int retries = 0; retries < RETRIESMAX; ++retries) {
+      limiter.exec();
+      netComm->request(url);
+      q.exec();
+
+      // TODO: add some checks for things like making sure its actually a pdf file
+      if(netComm->getError(config->verbosity) == QNetworkReply::NoError) {
+        game.manualData= netComm->getData();
+        game.manualFormat = "pdf";
+      } else {
+	    moveOn = false;
+      }
+
       if(moveOn)
 	break;
     }
